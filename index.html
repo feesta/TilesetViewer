@@ -11,7 +11,7 @@ var url, coords, map, mm = com.modestmaps;
 
 $(function() {
     //$(window).hashchange(function(){
-    var url_delimiter = '!';
+    var url_delimiter = "!";
     if (hash && hash.indexOf(url_delimiter) != -1) {
         var args = hash.split(url_delimiter);
         coords = args[0];
@@ -19,7 +19,7 @@ $(function() {
     } else {
         console.info(hash);
         console.info(hash.indexOf(url_delimiter));
-        url = 'http://tile.stamen.com/toner/{Z}/{X}/{Y}.png';
+        url = "http://tile.stamen.com/toner/{Z}/{X}/{Y}.png";
         showDialog("No URL yet so we're using Toner. Want to add one?", url);
         return;
     }
@@ -28,12 +28,12 @@ $(function() {
         showDialog("Our URL Validatron says your URL isn't valid. Want to fix it?", url);
         return;
     } else if (!isValidMustache(url)) {
-        url = url || 'http://tile.stamen.com/toner/{Z}/{X}/{Y}.png';
+        url = url || "http://tile.stamen.com/toner/{Z}/{X}/{Y}.png";
         showDialog("We use mustaches here. You should too (ie. replace {Z} for zoom, {X} for latitude, and {Y} for longitude. An example is for Toner which is the default tileset: <em>http://tile.stamen.com/toner/{Z}/{X}/{Y}.png</em>  Want to fix it?", url);
         return;
     } else {
         if (coords) {
-            var cc = coords.split('/');
+            var cc = coords.split("/");
             var loc = {center:new mm.Location(cc[1],cc[2]),
                        zoom:cc[0]};;
             loadMap(url,loc);
@@ -46,9 +46,9 @@ $(function() {
 
 function loadMap(url, loc) {
     var layer = new mm.TemplatedLayer(url);
-    map = new mm.Map('map', layer);
+    map = new mm.Map("map", layer);
 
-    loc = typeof loc !== 'undefined' ? loc : {center:new mm.Location(37.811530, -122.2666097), zoom:13};
+    loc = typeof loc !== "undefined" ? loc : {center:new mm.Location(37.811530, -122.2666097), zoom:13};
     map.setCenterZoom(loc.center, loc.zoom);
     
     var hashhash = new mm.MyHash(map);
@@ -58,20 +58,21 @@ function loadMap(url, loc) {
 
 
 function showDialog(text, url) {
-    var html = "<div id='dialog'><span class='text'>" + text + "</span><br><input class='textinput' type='text' value='" + url + "' /> <button class='submitbutton' onclick='submitclicked()'>Map it!</button><!--<button class='closebutton' onclick='closeclicked'>close</button>--></div>";
-    $('body').append(html);
+    $("#dialog input.textinput").attr("value", url);
+    $("#dialog > span.text").html(text);
+    $("#dialog").show();
 }
 
 function submitclicked() {
+    console.info("submit clicked");
     var url = unescape($("input.textinput").val());
     // validate url
     if (isValidURL(url) && isValidMustache(url)) {
         loadMap(url, undefined);
-        $("#dialog").remove();
+        $("#dialog").hide();
     } else {
-        console.info('not valid url');
+        console.info("not valid url");
         //show alert with error.
-
     }
 }
 
@@ -84,22 +85,35 @@ function isValidURL(url){
 } 
 
 function isValidMustache(url) {
-    return (url.indexOf('{Z}') > 0 &&
-            url.indexOf('{Y}') > 0 &&
-            url.indexOf('{X}') > 0);
+    return (url.indexOf("{Z}") > 0 &&
+            url.indexOf("{Y}") > 0 &&
+            url.indexOf("{X}") > 0);
 }
 
 // -->
 </script>
 <style type="text/css">
+body {font-family:"Helvetica Neue", Helvetica, sans-serif;}
 
-#map {width:100%; height:100%; position:absolute; overflow:hidden;}
-input.textinput {width:500px;}
+#map {width:100%; height:100%; position:absolute; overflow:hidden; top:0; left:0;}
+
+#dialog {width:600px; position:absolute; margin:100px auto; background:#eed; text-align:left; display:none; padding:10px; border-radius:5px; box-shadow:0px 1px 3px rgba(0,0,0,0.5);}
+#dialog span.text {font-weight:bold; }
+#dialog input.textinput {width:500px; font-size:14px; font-weight:bold; color:#666; border:0; padding:5px; margin-top:10px;}
 
 </style>
 </head>
-<body id="map"></body>
+<body>
 
+<div id="map"></div>
+<div id="dialog">
+    <span class="text">message here</span><br>
+    <input class="textinput" type="text"  value="" /> 
+    <button class="submitbutton" onClick="submitclicked()">Map it!</button>
+    <!--<button class="closebutton" onclick="closeclicked">close</button>-->
+</div>
+
+</body>
 <script type="text/javascript">
 // namespacing!
 if (!com) {
@@ -113,7 +127,7 @@ if (!com.modestmaps) {
 
     var HAS_HASHCHANGE = (function() {
         var doc_mode = window.documentMode;
-        return ('onhashchange' in window) &&
+        return ("onhashchange" in window) &&
             (doc_mode === undefined || doc_mode > 7);
     })();
 
