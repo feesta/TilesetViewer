@@ -7,7 +7,9 @@
 // <!--
 
 var hash = unescape(location.hash.substring(1));
-var url, coords, map, mm = com.modestmaps;
+var coords, map, mm = com.modestmaps;
+
+var url = "http://tile.stamen.com/toner/{Z}/{X}/{Y}.png";
 
 $(function() {
     //$(window).hashchange(function(){
@@ -21,6 +23,7 @@ $(function() {
         console.info(hash.indexOf(url_delimiter));
         url = "http://tile.stamen.com/toner/{Z}/{X}/{Y}.png";
         showDialog("No URL yet so we're using Toner. Want to add one?", url);
+        loadMap(url, undefined);
         return;
     }
     // parse url and test for validity
@@ -35,20 +38,36 @@ $(function() {
         if (coords) {
             var cc = coords.split("/");
             var loc = {center:new mm.Location(cc[1],cc[2]),
-                       zoom:cc[0]};;
+                       zoom:cc[0]};
             loadMap(url,loc);
         } else loadMap(url, undefined);
     }
     //});
 
     //$(window).hashchange();
+    $("#revealDialog").click(function(){
+        showDialog("Insert a mustache syntax URL here", url);
+    });
+    $("#close").click(function(){
+        $("#dialog").fadeOut(100);
+        $("#revealDialog").fadeIn(100);
+    });
 });
 
 function loadMap(url, loc) {
+    //loc = loc || map.getCenter() || {center:new mm.Location(37.811530, -122.2666097), zoom:13};
+    if (!loc && map) {
+        loc = {
+            center: map.getCenter(), 
+            zoom: map.getZoom()
+        };
+    }
+    //loc = typeof loc !== "undefined" ? loc : (map) ? map.getCenter() : {center:new mm.Location(37.811530, -122.2666097), zoom:13};
+    console.info('***', loc, map, (map) ? map.getCenter() : 'no map');
+    $("#map").empty();
     var layer = new mm.TemplatedLayer(url);
     map = new mm.Map("map", layer);
 
-    loc = typeof loc !== "undefined" ? loc : {center:new mm.Location(37.811530, -122.2666097), zoom:13};
     map.setCenterZoom(loc.center, loc.zoom);
     
     var hashhash = new mm.MyHash(map);
@@ -60,23 +79,23 @@ function loadMap(url, loc) {
 function showDialog(text, url) {
     $("#dialog input.textinput").attr("value", url);
     $("#dialog > span.text").html(text);
-    $("#dialog").show();
+    $("#dialog").fadeIn(100);
+    $("#revealDialog").fadeOut(100);
 }
 
 function submitclicked() {
     console.info("submit clicked");
-    var url = unescape($("input.textinput").val());
+    url = unescape($("input.textinput").val());
     // validate url
     if (isValidURL(url) && isValidMustache(url)) {
+        console.info("valid url:", url);
         loadMap(url, undefined);
-        $("#dialog").hide();
+        $("#dialog").fadeOut(100);
+        $("#revealDialog").fadeIn(100);
     } else {
-        console.info("not valid url");
+        console.info("not valid url:", url);
         //show alert with error.
     }
-}
-
-function closeclicked() {
 }
 
 function isValidURL(url){
@@ -93,13 +112,21 @@ function isValidMustache(url) {
 // -->
 </script>
 <style type="text/css">
-body {font-family:"Helvetica Neue", Helvetica, sans-serif;}
+body {font-family:"Helvetica Neue", Helvetica, sans-serif; margin:0;}
 
 #map {width:100%; height:100%; position:absolute; overflow:hidden; top:0; left:0;}
 
-#dialog {width:600px; position:absolute; margin:100px auto; background:#eed; text-align:left; display:none; padding:10px; border-radius:5px; box-shadow:0px 1px 3px rgba(0,0,0,0.5);}
+#dialog {width:600px; margin:0 auto; background:#06F; text-align:left; display:none; padding:15px; position:relative; color:white;}
+#dialog .title {font-size:36px; font-weight:bold; margin-bottom:10px;}
 #dialog span.text {font-weight:bold; }
-#dialog input.textinput {width:500px; font-size:14px; font-weight:bold; color:#666; border:0; padding:5px; margin-top:10px;}
+#dialog input.textinput {width:500px; font-size:14px; font-weight:bold; color:#666; border:0; padding:7px 10px; margin-top:10px;}
+#dialog button.submitbutton {background-color:#06D; border:2px solid white; padding:5px 8px; font-size:14px; cursor:pointer; color:white;}
+#dialog button.submitbutton:hover {color:#333; border-color:#333;}
+#dialog #close {float:right; cursor:pointer; font-size:40px; margin-top:-15px;}
+#dialog #close:hover {color:#333;}
+
+#revealDialog {position:fixed; top:0; left:0; color:white; padding:0px 20px 3px 17px; font-size:40px; background-color:#06F; opacity:0.5; cursor:pointer;}
+#revealDialog:hover {opacity:1; color:#333;}
 
 </style>
 </head>
@@ -107,11 +134,15 @@ body {font-family:"Helvetica Neue", Helvetica, sans-serif;}
 
 <div id="map"></div>
 <div id="dialog">
+    <span id="close">×</span>
+    <div class="title">TilesetViewer</div>
     <span class="text">message here</span><br>
-    <input class="textinput" type="text"  value="" /> 
-    <button class="submitbutton" onClick="submitclicked()">Map it!</button>
-    <!--<button class="closebutton" onclick="closeclicked">close</button>-->
+    <form>
+        <input class="textinput" type="text"  value="" /> 
+        <button class="submitbutton" onClick="submitclicked()">Map it!</button>
+    </form>
 </div>
+<div id="revealDialog">⁝</div>
 
 </body>
 <script type="text/javascript">
