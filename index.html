@@ -20,6 +20,7 @@ var hash = decodeURI(location.hash.substring(1)),
 
 $(function() {
     $("#revealDialog").click(function(){
+        console.info("revealDialog clicked", url);
         showDialog("Insert a mustache syntax URL here", url);
     });
     $("#close").click(function(){
@@ -32,20 +33,21 @@ $(function() {
         coords = args[0];
         url = args[1];
     } else {
+        console.info("hash", hash, hash.indexOf(url_delimiter));
         url = "http://tile.stamen.com/toner/{Z}/{X}/{Y}.png";
         showDialog("No URL yet so we're using Toner. Want to add one?", url);
-        loadMap(url, default_location);
-        return;
+        //loadMap(url, default_location);
+        //return;
     }
     
     // parse url and test for validity
     if (!isValidURL(url)) {
         showDialog("Our URL Validatron says your URL isn't valid. Want to fix it?", url);
-        return;
+        //return;
     } else if (!isValidMustache(url)) {
         url = url || "http://tile.stamen.com/toner/{Z}/{X}/{Y}.png";
         showDialog("We use mustaches here. You should too (ie. replace {Z} for zoom, {X} for latitude, and {Y} for longitude. An example is for Toner which is the default tileset: <em>http://tile.stamen.com/toner/{Z}/{X}/{Y}.png</em>  Want to fix it?", url);
-        return;
+        //return;
     } else {
         if (coords) {
             var cc = coords.split("/"),
@@ -59,24 +61,37 @@ $(function() {
 });
 
 function loadMap(url, loc) {
+    console.info("loadMap()", url, loc, map, layer);
+    //loc = loc || map.getCenter() || {center:new mm.Location(37.811530, -122.2666097), zoom:13};
+    //console.info("loc", loc);
     if (!loc && map) {
         loc = {
             center: map.getCenter(), 
             zoom: map.getZoom()
         };
     }
+    console.info("loc", loc);
     loc = typeof loc !== "undefined" ? 
         loc : 
         default_location;
-    if (map && layer) {
+    //console.info("loc",loc);
+    if (map && layer && typeof map !== "undefined" && map !== "null") {
+        console.info("update layer", layer, url);
         layer.setProvider(new mm.TemplatedMapProvider(url));
+        //var layer = new mm.Layer(new mm.TemplatedMapProvider(url));
+        //map.removeLayerAt(0);
+        //map.insertLayerAt(0,layer);
     } else {
-        layer = new mm.Layer(new mm.TemplatedMapProvider(url));
+        console.info("create new layer", map, layer);
+       layer = new mm.Layer(new mm.TemplatedMapProvider(url));
+        /*
         var interaction = [
             new MM.DragHandler(map),
             new MM.DoubleClickHandler(map)
         ];
-        map = new mm.Map("map", layer, null, interaction);
+        */
+        console.info("layer", layer);
+        map = new mm.Map("map", layer, null);
     }
 
     map.setCenterZoom(loc.center, loc.zoom);
@@ -87,6 +102,7 @@ function loadMap(url, loc) {
 
 
 function showDialog(text, url) {
+    console.info("showDialog()", text, url);
     $("#dialog input.textinput").attr("value", url);
     $("#dialog > span.text").html(text);
     $("#dialog").show();
@@ -94,9 +110,11 @@ function showDialog(text, url) {
 }
 
 function submitclicked() {
+    console.info("submit clicked");
     url = unescape($("input.textinput").val());
     // validate url
     if (isValidURL(url) && isValidMustache(url)) {
+        console.info("valid url:", url);
         loadMap(url, undefined);
         $("#dialog").hide();
         $("#revealDialog").show();
@@ -137,7 +155,7 @@ body {font-family:"Helvetica Neue", Helvetica, sans-serif; margin:0;}
 
 </style>
 </head>
-<body>
+<body defer>
 
 <div id="map"></div>
 <div id="dialog">
